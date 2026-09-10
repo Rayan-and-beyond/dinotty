@@ -1,43 +1,44 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-/** Open floating windows: pluginId -> stacking rank (higher renders in front
- *  inside the host layer). Geometry lives in the window component +
- *  localStorage; plugin validity is the host's concern. */
+/** Open floating windows: window id -> stacking rank (higher renders in front
+ *  inside the host layer). Ids are arbitrary strings — a plugin id for plugin
+ *  windows ('float:files'/'float:web' for built-in previews). Geometry lives in
+ *  the window component + localStorage; content validity is the host's concern. */
 export const usePluginFloatWindowsStore = defineStore('pluginFloatWindows', () => {
   const windows = ref(new Map<string, number>())
   const zCounter = ref(0)
 
   const openIds = computed(() => Array.from(windows.value.keys()))
 
-  function isOpen(pluginId: string): boolean {
-    return windows.value.has(pluginId)
+  function isOpen(windowId: string): boolean {
+    return windows.value.has(windowId)
   }
 
-  function focus(pluginId: string): void {
-    if (!windows.value.has(pluginId)) return
+  function focus(windowId: string): void {
+    if (!windows.value.has(windowId)) return
     zCounter.value += 1
-    windows.value.set(pluginId, zCounter.value)
+    windows.value.set(windowId, zCounter.value)
   }
 
-  /** Open (single instance per plugin) or bring an existing window to front. */
-  function open(pluginId: string): void {
-    if (!windows.value.has(pluginId)) windows.value.set(pluginId, 0)
-    focus(pluginId)
+  /** Open (single instance per id) or bring an existing window to front. */
+  function open(windowId: string): void {
+    if (!windows.value.has(windowId)) windows.value.set(windowId, 0)
+    focus(windowId)
   }
 
-  function close(pluginId: string): void {
-    windows.value.delete(pluginId)
+  function close(windowId: string): void {
+    windows.value.delete(windowId)
   }
 
-  function toggle(pluginId: string): void {
-    if (windows.value.has(pluginId)) close(pluginId)
-    else open(pluginId)
+  function toggle(windowId: string): void {
+    if (windows.value.has(windowId)) close(windowId)
+    else open(windowId)
   }
 
   /** Stacking rank for the window's z-index (0 when not open). */
-  function zOf(pluginId: string): number {
-    return windows.value.get(pluginId) ?? 0
+  function zOf(windowId: string): number {
+    return windows.value.get(windowId) ?? 0
   }
 
   return { windows, zCounter, openIds, isOpen, open, close, toggle, focus, zOf }

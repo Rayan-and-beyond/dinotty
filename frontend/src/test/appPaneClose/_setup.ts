@@ -350,6 +350,7 @@ export const TabBarStub = defineComponent({
   props: {
     tabs: { type: Array as PropType<any[]>, default: () => [] },
     indicators: { type: Object, default: () => ({}) },
+    toolbarOrder: { type: Array as PropType<string[]>, default: () => [] },
   },
   setup(props, { slots, expose }) {
     expose({
@@ -363,7 +364,10 @@ export const TabBarStub = defineComponent({
           class: 'tab-bar-stub',
           'data-indicators': JSON.stringify(props.indicators),
         },
-        slots.right?.()
+        [
+          ...props.toolbarOrder.map((itemId) => slots['toolbar-item']?.({ itemId }) ?? []),
+          slots.more?.() ?? [],
+        ]
       )
   },
 })

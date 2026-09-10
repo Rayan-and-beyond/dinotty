@@ -31,10 +31,16 @@ impl Drop for ServerGuard {
 
 static SUFFIX_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
+/// Unique across runs, not merely within one. `process::id()` alone repeats on
+/// long-lived hosts (the self-hosted Windows runner), and a repeated suffix
+/// makes the server read the `settings.json` a previous run left behind.
 fn unique_suffix() -> String {
     let pid = std::process::id();
     let n = SUFFIX_COUNTER.fetch_add(1, Ordering::Relaxed);
-    format!("-scope-test-{pid}-{n}")
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_nanos());
+    format!("-scope-test-{pid}-{n}-{nonce}")
 }
 
 fn free_loopback_port() -> TestResult<u16> {

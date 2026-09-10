@@ -193,7 +193,7 @@ describe('AppearanceTab device text overrides', () => {
   it('shows the resize hint only for the vertical placements', async () => {
     const wrapper = mount(AppearanceTab)
     const resizeHint = 'Drag the sidebar edge to resize.'
-    const hintOf = () => wrapper.find('p.settings-hint').text()
+    const hintOf = () => wrapper.find('p.tab-placement-hint').text()
     expect(hintOf()).not.toContain(resizeHint)
 
     await wrapper.find('select.tab-placement-select').setValue('right')

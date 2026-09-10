@@ -289,8 +289,11 @@ const props = withDefaults(
     shellType?: string
     initialPath?: string
     sourcePaneId?: string
+    /** Rendered inside a floating window: suppress the global side effects
+     *  (workspace/leaf registration, window listeners) that a split leaf owns. */
+    isWindow?: boolean
   }>(),
-  { inLeaf: true }
+  { inLeaf: true, isWindow: false }
 )
 const treeCollapsed = defineModel<boolean>('treeCollapsed', { default: false })
 const emit = defineEmits<{
@@ -343,6 +346,8 @@ watch(
 watch(
   () => editorSplit.activeEditorLeafId.value,
   () => {
+    // A floating window must not hijack the global active editor leaf.
+    if (props.isWindow) return
     setActiveLeaf(editorSplit.activeEditorLeafId.value ?? null)
   },
   { immediate: true }
@@ -773,23 +778,27 @@ const { startDrag } = usePaneResize('.file-workspace', layout.direction)
 
 onMounted(() => {
   window.addEventListener('resize', layout.onResize)
-  window.addEventListener('keydown', onEditorSaveKeydown, true)
-  window.addEventListener('scroll', onCloseContextScroll, true)
-  ops.setActiveWorkspace()
+  if (!props.isWindow) {
+    window.addEventListener('keydown', onEditorSaveKeydown, true)
+    window.addEventListener('scroll', onCloseContextScroll, true)
+    ops.setActiveWorkspace()
+    setEditorSplitForCursorGroup(editorSplit)
+  }
   void getApiBase()
-  setEditorSplitForCursorGroup(editorSplit)
 })
 
 onBeforeUnmount(() => {
   if (props.paneId) saveFileWorkspaceState(props.paneId, captureState())
   window.removeEventListener('resize', layout.onResize)
-  window.removeEventListener('keydown', onEditorSaveKeydown, true)
-  window.removeEventListener('scroll', onCloseContextScroll, true)
-  ops.teardownWorkspaceDragDrop()
-  ops.clearActiveWorkspace()
+  if (!props.isWindow) {
+    window.removeEventListener('keydown', onEditorSaveKeydown, true)
+    window.removeEventListener('scroll', onCloseContextScroll, true)
+    ops.teardownWorkspaceDragDrop()
+    ops.clearActiveWorkspace()
+    setEditorSplitForCursorGroup(null)
+    setActiveLeaf(null)
+  }
   fileWatch.disconnectTreeWatchSocket()
-  setEditorSplitForCursorGroup(null)
-  setActiveLeaf(null)
 })
 
 defineExpose({

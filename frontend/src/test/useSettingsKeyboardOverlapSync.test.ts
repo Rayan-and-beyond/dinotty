@@ -81,8 +81,8 @@ describe('synchronized IME keyboard overlap', () => {
 
     const put = apiMocks.authFetch.mock.calls.find(([, init]) => init?.method === 'PUT')
     expect(JSON.parse(String(put?.[1]?.body))).toMatchObject({
-      settings_version: 13,
-      client_settings_version: 13,
+      settings_version: 14,
+      client_settings_version: 14,
       ime_keyboard_overlap_px: 72,
     })
     expect(settings.ime_keyboard_overlap_px).toBe(72)
@@ -161,8 +161,8 @@ describe('synchronized IME keyboard overlap', () => {
     expect(puts).toHaveLength(1)
     const put = puts[0]
     expect(JSON.parse(String(put?.[1]?.body))).toMatchObject({
-      settings_version: 13,
-      client_settings_version: 13,
+      settings_version: 14,
+      client_settings_version: 14,
       ime_keyboard_overlap_px: 64,
     })
     wrapper.unmount()

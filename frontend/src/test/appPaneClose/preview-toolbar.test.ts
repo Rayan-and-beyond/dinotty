@@ -3,24 +3,23 @@ import { mountWithTabs, mocks } from './_setup'
 import { useSessionStore } from '../../stores/sessionStore'
 import { getAllLeaves } from '../../types/pane'
 
+// Files and web preview are visible in the toolbar by default, so each is a
+// top-level button; the "More" menu only carries them once hidden in settings.
 describe('App.vue - preview toolbar toggle', () => {
-  it('creates a files leaf when the file browser menu item is clicked', async () => {
+  it('creates a files leaf when the file browser toolbar button is clicked', async () => {
     const wrapper = await mountWithTabs()
     const session = useSessionStore()
-    const previewButton = wrapper.find('button[title="app.preview"]')
+    const filesButton = wrapper.find('button[title="previewPanel.switchFiles"]')
     const tab = session.tabs[0]
     if (tab.type !== 'terminal') throw new Error('expected terminal tab')
 
     expect(getAllLeaves(tab.layout).some((l) => l.kind === 'files' || l.kind === 'web')).toBe(false)
 
-    await previewButton.trigger('click')
-    const items = wrapper.findAll('.preview-menu-item')
-    expect(items.length).toBe(2)
-    await items[0].trigger('click')
+    await filesButton.trigger('click')
     expect(mocks.insertNonTerminalPane).toHaveBeenCalledWith('files', expect.anything())
   })
 
-  it('creates a web leaf when the web preview menu item is clicked', async () => {
+  it('creates a web leaf when the web preview toolbar button is clicked', async () => {
     const wrapper = await mountWithTabs()
     const session = useSessionStore()
     const tab = session.tabs[0]
@@ -46,11 +45,7 @@ describe('App.vue - preview toolbar toggle', () => {
     mocks.insertNonTerminalPane.mockClear()
     mocks.focusPane.mockClear()
 
-    const previewButton = wrapper.find('button[title="app.preview"]')
-    await previewButton.trigger('click')
-    const items = wrapper.findAll('.preview-menu-item')
-    expect(items.length).toBe(2)
-    await items[1].trigger('click')
+    await wrapper.find('button[title="previewPanel.switchWeb"]').trigger('click')
 
     expect(mocks.insertNonTerminalPane).toHaveBeenCalledWith('web', expect.anything())
   })
@@ -90,12 +85,7 @@ describe('App.vue - preview toolbar toggle', () => {
     mocks.insertNonTerminalPane.mockClear()
     mocks.focusPane.mockClear()
 
-    const previewButton = wrapper.find('button[title="app.preview"]')
-    await previewButton.trigger('click')
-    const items = wrapper.findAll('.preview-menu-item')
-    expect(items.length).toBe(2)
-    // Click "Web preview" (second item) -> should focus existing web leaf
-    await items[1].trigger('click')
+    await wrapper.find('button[title="previewPanel.switchWeb"]').trigger('click')
 
     expect(mocks.focusPane).toHaveBeenCalledWith('web-leaf-1')
     expect(mocks.insertNonTerminalPane).not.toHaveBeenCalled()

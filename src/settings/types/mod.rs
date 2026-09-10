@@ -18,7 +18,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub const CURRENT_SETTINGS_VERSION: u32 = 13;
+pub const CURRENT_SETTINGS_VERSION: u32 = 14;
 pub(crate) const LEGACY_UPLOAD_DIR: &str = "~/.dinotty/uploads";
 
 #[derive(Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -196,6 +196,9 @@ pub struct Settings {
     pub show_workspace_badge_on_tab: Option<bool>,
     #[serde(default)]
     pub workspace_badge_mode: Option<WorkspaceBadgeMode>,
+    /// When enabled, a plain New Tab command starts in the active pane's CWD.
+    #[serde(default)]
+    pub inherit_cwd_for_new_tab: bool,
     #[serde(default, rename = "windowsAltAsCmd")]
     pub windows_alt_as_cmd: bool,
     #[serde(default = "default_true")]
@@ -242,6 +245,10 @@ pub struct Settings {
     pub hidden_builtins: Vec<String>,
     #[serde(default)]
     pub plugin_prefs: PluginPrefsConfig,
+    /// Per-pane-kind open mode for the built-in file/web previews: "split" (default) or "floating".
+    /// Absent key = "split". Plain string values tolerate junk; the frontend normalizes on read.
+    #[serde(default)]
+    pub preview_open_modes: std::collections::HashMap<String, String>,
     #[serde(default = "default_shell_kind")]
     pub shell: String,
     #[serde(default)]
@@ -438,6 +445,7 @@ impl Default for Settings {
             keyboard_keep_on_scroll: false,
             show_workspace_badge_on_tab: None,
             workspace_badge_mode: None,
+            inherit_cwd_for_new_tab: false,
             windows_alt_as_cmd: false,
             confirm_before_close_tab: true,
             restore_session_on_startup: true,
@@ -461,6 +469,7 @@ impl Default for Settings {
             custom_themes: vec![],
             hidden_builtins: vec![],
             plugin_prefs: PluginPrefsConfig::default(),
+            preview_open_modes: std::collections::HashMap::new(),
             shell: default_shell_kind(),
             shell_path: None,
             wsl_distro: None,
