@@ -1021,7 +1021,17 @@ onMounted(() => {
   // so left-click and right-click no longer produce two menu variants (#306).
   self.onPreviewLinkOpen = (url) => {
     emit('linkActivate')
-    void openUrlInSystemBrowser(url)
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return
+      if (isTauri()) {
+        void openUrlInSystemBrowser(url)
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
+    } catch {
+      // Ignore malformed terminal links.
+    }
   }
   self.onPreviewLinkHover = (url) => {
     hoveredLinkUrl.value = url
